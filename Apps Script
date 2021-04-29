@@ -1,0 +1,67 @@
+function doGet(e) {
+  return HtmlService.createHtmlOutput("doGet request");
+}
+
+// This fucntion fires when a POST message is recieved
+function doPost(e) {
+  
+  //Name of Sheet to be used.
+  var sheetName = "ing";
+  var d = new Date();
+  //var timeStamp = d.getTime();  // Number of ms since Jan 1, 1970
+
+  // OR:
+  var currentDate = d.toLocaleDateString()
+  var currentTime = d.toLocaleTimeString()
+  
+  
+  try {
+    // convert payload into js object
+    // webhook events are only for one row so we can just extract the first array object ( [0] ) 
+    var data = JSON.parse(e.postData.contents);   
+    //var data = JSON.parse(e.postData.getContentText());
+    // write some data to Google sheet. There is other data that can be used but these are common data point for every document
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    sheet.appendRow([data.data.id,data.form_params.State,data.form_params.Stage,data.form_params.planned_start_date,data.form_params.planned_end_date,data.data.updated_by,d]);
+    
+  } catch (error) {
+    // if something goes wrong we will append message to google sheet so it can be easily found
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    sheet.appendRow([error])
+  }
+  
+  
+  
+  
+  // Server Response
+  var response = {
+  'my_apps_business_logic': 'something',
+  'looker': {
+    'success': true,
+    'refresh_query': true
+  }
+}
+ 
+//var payload = JSON.stringify(response);
+//  return HtmlService.createHtmlOutput(payload);
+  //return payload.getContent()
+  
+  
+  const json = {
+  "looker": {
+    "success": false,
+    "refresh_query": true,
+    "validation_errors": {
+      "body": "Body must be more than 10 characters long."
+    }
+  }
+  }
+;
+  //console.log(`doGet`, JSON.stringify(json));
+  return HtmlService.createHtmlOutput(JSON.stringify(json)).setMimeType(ContentService.MimeType.JSON);
+  
+  
+  
+  
+  
+}
